@@ -1,0 +1,26 @@
+{
+    "name": "migears/i18n",
+    "description": "Minimalist internationalization (i18n) library with array-based translations and gettext support",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["i18n", "translation", "internationalization", "l10n", "localization"],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "suggest": {
+        "ext-gettext": "Required for GettextTranslator (native gettext support)"
+    },
+    "autoload": {
+        "psr-4": {
+            "MiGears\\I18n\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MiGears\\I18n\\Tests\\": "tests/"
+        }
+    }
+}
