@@ -54,6 +54,9 @@ class GettextTranslator implements TranslatorInterface
         bind_textdomain_codeset($domain, $codeset);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function translate(string $key, array $params = [], ?string $domain = null): string
     {
         $domain ??= $this->defaultDomain;

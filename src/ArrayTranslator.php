@@ -66,6 +66,9 @@ class ArrayTranslator implements TranslatorInterface
         return new self($translations, $defaultDomain);
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function translate(string $key, array $params = [], ?string $domain = null): string
     {
         $domain ??= $this->defaultDomain;

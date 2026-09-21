@@ -12,6 +12,7 @@ A minimalist internationalization (i18n) translation library. Zero mandatory dep
 - **Variable interpolation** - `translate('HELLO_USER', ['user' => 'Alice'])` → `"Hello, Alice"`
 - **Multi-domain support** - Organize translations by module
 - **Text object** - Deferred translation text object with JSON serialization support
+- **Localized dates** - `LocalizedDate` presents a timestamp in the viewer's timezone, rendering through the translator
 - **English by default** - Returns the key itself as fallback when translation is not found
 - **100% unit test coverage**
 
@@ -147,6 +148,54 @@ $translator = TranslatorFactory::create([
 ]);
 ```
 
+### Localized Dates
+
+`LocalizedDate` binds a timestamp to a viewer's timezone and translator. It reports neutral facts and renders text through the translator, so the class itself carries no language.
+
+Rendering is for the server — use it in a template. Serialization stays raw, because a payload carrying rendered text would lock the client into this server's language:
+
+```php
+echo $createdAt->humanize();   // 今天 10:30
+echo $createdAt->relative();   // 2 小时前
+
+echo $createdAt;               // "2026-09-21 14:30" — locale-neutral
+
+echo json_encode(['created_at' => $createdAt]);
+// {"created_at":{"timestamp":1758450600,"iso":"2026-09-21T14:30:00+08:00","timezone":"Asia/Shanghai"}}
+```
+
+```php
+use MiGears\I18n\ArrayTranslator;
+use MiGears\I18n\LocalizedDate;
+
+$translator = new ArrayTranslator([
+    'date.weekday.0' => '周日',   // ... through date.weekday.6
+    'date.humanize.today' => '今天 %time%',
+    'date.humanize.yesterday' => '昨天 %time%',
+    'date.humanize.tomorrow' => '明天 %time%',
+    'date.humanize.weekday' => '%weekday% %time%',
+    'date.humanize.date' => '%month%月%day%日 %time%',
+    'date.humanize.dateOtherYear' => '%year%年%month%月%day%日 %time%',
+    'date.relative.past.hour' => '%count% 小时前',
+    // ... the rest of the date.relative.* keys
+]);
+
+$createdAt = new LocalizedDate($row['created_at'], $timezone, $translator);
+```
+
+The keys it looks up:
+
+| Key | Params | Used for |
+|-----|--------|----------|
+| `date.relative.{direction}.{unit}` | `%count%` | `direction` is `past` or `future`; `unit` is `moment`, `minute`, `hour`, `day`, `week`, `month`, `year` |
+| `date.weekday.{0-6}` | — | A weekday name, 0 = Sunday; feeds `date.humanize.weekday` |
+| `date.humanize.today` / `.yesterday` / `.tomorrow` | `%time%` | The three days around now |
+| `date.humanize.weekday` | `%weekday%`, `%time%` | The recent past, within six days |
+| `date.humanize.date` | `%month%`, `%day%`, `%time%`, `%date%` | Older than that, still in the current year |
+| `date.humanize.dateOtherYear` | `%year%`, `%month%`, `%day%`, `%time%`, `%date%` | Anything older |
+
+`%month%` and `%day%` arrive as unpadded numbers, so `3月15日` does not turn into `03月15日`; `%date%` carries the ISO `Y-m-d` string for tables that prefer it. `relative()` and `humanize()` throw a `LogicException` when no translator was supplied; `relativeParts()` and `humanizeParts()` need none.
+
 ## API Reference
 
 ### TranslatorInterface
@@ -194,6 +243,26 @@ Text::fromJson(array $data): self;
 TranslatorFactory::create(array $config): TranslatorInterface;
 ```
 
+### LocalizedDate
+
+| Method | Description |
+|--------|-------------|
+| `new LocalizedDate($input = null, $timezone = null, $translator = null)` | Bind a timestamp to a viewer's timezone and translator |
+| `LocalizedDate::fromTimestamp($ts, $tz = null, $translator = null)` | Create from a Unix timestamp |
+| `LocalizedDate::fromString($str, $tz = null, $translator = null)` | Create from a datetime string |
+| `relative()` | Rendered distance from now, e.g. `2 小时前` |
+| `humanize()` | Rendered friendly timestamp, e.g. `今天 10:30` |
+| `relativeParts()` | Language-free distance from now |
+| `humanizeParts()` | Language-free bucket for a friendly timestamp |
+| `toDateTime()` / `timestamp()` | Underlying `DateTimeImmutable` / Unix timestamp |
+| `toDateString()` / `toDateTimeString()` / `format($pattern)` | Locale-neutral formatting |
+| `dayOfWeek()` | 0 (Sun) - 6 (Sat) |
+| `isToday()` / `isYesterday()` / `isTomorrow()` | Comparison in the date's own timezone |
+| `withTimezone($tz)` | Convert timezone (immutable; translator carried over) |
+| `timezone()` | Get current timezone |
+| `jsonSerialize()` | Raw `timestamp` / `iso` / `timezone`, never rendered text |
+| `__toString()` | Locale-neutral `Y-m-d H:i` |
+
 ## Design Principles
 
 - **No singletons** - Translators are plain objects, freely instantiable and injectable
@@ -229,6 +298,7 @@ MIT
 - **变量插值** - `translate('HELLO_USER', ['user' => 'Alice'])` → `"Hello, Alice"`
 - **多 domain 支持** - 按模块组织翻译
 - **Text 对象** - 可延迟翻译的文本对象，支持 JSON 序列化
+- **本地化日期** - `LocalizedDate` 按用户时区呈现时间戳，并通过翻译器渲染文案
 - **默认英文** - 找不到翻译时返回 key 本身作为降级
 - **100% 单元测试覆盖率**
 
@@ -364,6 +434,54 @@ $translator = TranslatorFactory::create([
 ]);
 ```
 
+### 本地化日期
+
+`LocalizedDate` 把时间戳绑定到用户的时区与翻译器。它给出中立的事实，文案则通过翻译器渲染，因此类本身不含任何语言。
+
+渲染用于服务端——在模板里调用即可。序列化保持原始数据，因为载荷里带着渲染后的文案，等于把客户端锁死在服务端的语言上：
+
+```php
+echo $createdAt->humanize();   // 今天 10:30
+echo $createdAt->relative();   // 2 小时前
+
+echo $createdAt;               // "2026-09-21 14:30" — 与语言无关
+
+echo json_encode(['created_at' => $createdAt]);
+// {"created_at":{"timestamp":1758450600,"iso":"2026-09-21T14:30:00+08:00","timezone":"Asia/Shanghai"}}
+```
+
+```php
+use MiGears\I18n\ArrayTranslator;
+use MiGears\I18n\LocalizedDate;
+
+$translator = new ArrayTranslator([
+    'date.weekday.0' => '周日',   // ... 到 date.weekday.6
+    'date.humanize.today' => '今天 %time%',
+    'date.humanize.yesterday' => '昨天 %time%',
+    'date.humanize.tomorrow' => '明天 %time%',
+    'date.humanize.weekday' => '%weekday% %time%',
+    'date.humanize.date' => '%month%月%day%日 %time%',
+    'date.humanize.dateOtherYear' => '%year%年%month%月%day%日 %time%',
+    'date.relative.past.hour' => '%count% 小时前',
+    // ... 其余 date.relative.* 键
+]);
+
+$createdAt = new LocalizedDate($row['created_at'], $timezone, $translator);
+```
+
+它会查找的键：
+
+| 键 | 参数 | 用途 |
+|-----|--------|----------|
+| `date.relative.{direction}.{unit}` | `%count%` | `direction` 为 `past` 或 `future`；`unit` 为 `moment`、`minute`、`hour`、`day`、`week`、`month`、`year` |
+| `date.weekday.{0-6}` | — | 星期名，0 为周日；供 `date.humanize.weekday` 使用 |
+| `date.humanize.today` / `.yesterday` / `.tomorrow` | `%time%` | 今天前后三天 |
+| `date.humanize.weekday` | `%weekday%`、`%time%` | 近期过去，六天内 |
+| `date.humanize.date` | `%month%`、`%day%`、`%time%`、`%date%` | 更早，且仍在当年 |
+| `date.humanize.dateOtherYear` | `%year%`、`%month%`、`%day%`、`%time%`、`%date%` | 更早的年份 |
+
+`%month%` 与 `%day%` 传入的是不补零的数字，因此 `3月15日` 不会被写成 `03月15日`；`%date%` 提供 ISO 的 `Y-m-d` 字符串备用。未注入翻译器时 `relative()` 与 `humanize()` 抛 `LogicException`；`relativeParts()` 与 `humanizeParts()` 不需要翻译器。
+
 ## API 参考
 
 ### TranslatorInterface
@@ -410,6 +528,26 @@ Text::fromJson(array $data): self;
 // 从配置数组创建 — driver: "array" 或 "gettext"
 TranslatorFactory::create(array $config): TranslatorInterface;
 ```
+
+### LocalizedDate
+
+| 方法 | 说明 |
+|--------|-------------|
+| `new LocalizedDate($input = null, $timezone = null, $translator = null)` | 把时间戳绑定到用户时区与翻译器 |
+| `LocalizedDate::fromTimestamp($ts, $tz = null, $translator = null)` | 从 Unix 时间戳创建 |
+| `LocalizedDate::fromString($str, $tz = null, $translator = null)` | 从日期时间字符串创建 |
+| `relative()` | 渲染后的时间距离，如 `2 小时前` |
+| `humanize()` | 渲染后的友好时间戳，如 `今天 10:30` |
+| `relativeParts()` | 与当前时间的距离，不含语言 |
+| `humanizeParts()` | 友好时间戳所属的分组，不含语言 |
+| `toDateTime()` / `timestamp()` | 底层 `DateTimeImmutable` / Unix 时间戳 |
+| `toDateString()` / `toDateTimeString()` / `format($pattern)` | 与语言无关的格式化 |
+| `dayOfWeek()` | 0 (周日) - 6 (周六) |
+| `isToday()` / `isYesterday()` / `isTomorrow()` | 按对象自身时区比较 |
+| `withTimezone($tz)` | 转换时区（不可变，翻译器随之携带） |
+| `timezone()` | 获取当前时区 |
+| `jsonSerialize()` | 原始 `timestamp` / `iso` / `timezone`，绝不含渲染文案 |
+| `__toString()` | 与语言无关的 `Y-m-d H:i` |
 
 ## 设计原则
 
