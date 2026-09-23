@@ -4,6 +4,10 @@
 
 A minimalist internationalization (i18n) translation library. Zero mandatory dependencies, PHP 8.1+, based on PHP array translation files, with optional gettext support.
 
+> **Background**: miGears is the open-source successor of **TinyGears**, a
+> self-developed PHP framework. It was renamed and open-sourced recently because
+> the name *TinyGears* is already taken in the open-source community.
+
 ## Features
 
 - **Zero mandatory dependencies** - Works out of the box, no extensions required
