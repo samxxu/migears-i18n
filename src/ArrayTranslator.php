@@ -10,7 +10,7 @@ use InvalidArgumentException;
  * Array-based translator that loads translations from PHP arrays.
  *
  * Simple usage:
- *   $t = new ArrayTranslator(['HELLO' => 'Hello, %user%'], ['user' => 'world']);
+ *   $t = new ArrayTranslator(['HELLO' => 'Hello, %user%']);
  *   echo $t->translate('HELLO', ['user' => 'Alice']); // "Hello, Alice"
  *
  * Multi-domain usage:
@@ -72,7 +72,8 @@ class ArrayTranslator implements TranslatorInterface
     public function translate(string $key, array $params = [], ?string $domain = null): string
     {
         $domain ??= $this->defaultDomain;
-        $translation = $this->translations[$domain][$key] ?? $key;
+        $entry = $this->translations[$domain] ?? null;
+        $translation = is_array($entry) ? ($entry[$key] ?? $key) : $key;
 
         if ($params === []) {
             return $translation;

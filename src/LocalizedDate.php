@@ -203,7 +203,7 @@ final class LocalizedDate implements JsonSerializable, Stringable
         };
 
         return [
-            'direction' => $this->datetime < $now ? 'past' : 'future',
+            'direction' => $this->datetime <= $now ? 'past' : 'future',
             'unit' => $unit,
             'count' => $count,
         ];

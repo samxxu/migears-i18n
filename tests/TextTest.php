@@ -6,6 +6,7 @@ namespace MiGears\I18n\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
 use MiGears\I18n\ArrayTranslator;
 use MiGears\I18n\Text;
 use MiGears\I18n\TranslatorInterface;
@@ -163,6 +164,20 @@ final class TextTest extends TestCase
         $text = Text::fromJson(['key' => 'HELLO', 'domain' => null]);
 
         self::assertNull($text->getDomain());
+    }
+
+    public function testFromJsonThrowsWhenKeyMissing(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Text::fromJson(['params' => ['user' => 'Alice']]);
+    }
+
+    public function testFromJsonThrowsWhenKeyNotString(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Text::fromJson(['key' => 123]);
     }
 
     public function testRoundTripJsonSerializeAndFromJson(): void

@@ -28,8 +28,6 @@ use InvalidArgumentException;
  */
 class TranslatorFactory
 {
-    public const VERSION = '2.0.0';
-
     /**
      * Create a translator from a configuration array.
      *
@@ -42,6 +40,9 @@ class TranslatorFactory
      * Array driver config:
      *   - translations: array of translations (flat or nested by domain)
      *   - file: path to a PHP file that returns the translations array
+     *
+     * Providing both "file" and "translations" is rejected, since the two
+     * sources contradict each other.
      *
      * Gettext driver config:
      *   - locale: locale string (e.g. "zh_CN.UTF-8")
@@ -70,6 +71,12 @@ class TranslatorFactory
     private static function createArray(array $config): ArrayTranslator
     {
         $defaultDomain = $config['defaultDomain'] ?? 'messages';
+
+        if (isset($config['file']) && isset($config['translations'])) {
+            throw new InvalidArgumentException(
+                'Array driver config: provide either "file" or "translations", not both'
+            );
+        }
 
         if (isset($config['file'])) {
             return ArrayTranslator::fromFile((string) $config['file'], $defaultDomain);

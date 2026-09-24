@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MiGears\I18n;
 
+use InvalidArgumentException;
 use JsonSerializable;
 use Stringable;
 
@@ -21,8 +22,6 @@ use Stringable;
  */
 final class Text implements Stringable, JsonSerializable
 {
-    public const VERSION = '2.0.0';
-
     private ?TranslatorInterface $translator = null;
 
     /**
@@ -105,14 +104,23 @@ final class Text implements Stringable, JsonSerializable
     /**
      * Create a Text instance from a JSON array (as produced by jsonSerialize).
      *
-     * @param array{key: string, params?: array<string, mixed>, domain?: string|null} $data
+     * @param array<string, mixed> $data
+     *
+     * @throws InvalidArgumentException if the "key" field is missing or not a string
      */
     public static function fromJson(array $data): self
     {
+        if (!isset($data['key']) || !is_string($data['key'])) {
+            throw new InvalidArgumentException('Text JSON data must contain a string "key"');
+        }
+
+        $params = $data['params'] ?? [];
+        $domain = $data['domain'] ?? null;
+
         return new self(
             key: $data['key'],
-            params: $data['params'] ?? [],
-            domain: $data['domain'] ?? null,
+            params: is_array($params) ? $params : [],
+            domain: is_string($domain) ? $domain : null,
         );
     }
 }

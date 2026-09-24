@@ -11,6 +11,10 @@ use RuntimeException;
  *
  * Requires the gettext PHP extension (ext-gettext).
  * This is an optional driver; prefer ArrayTranslator for simpler setups.
+ *
+ * Note: construction mutates process-wide state (locale and text domain).
+ * gettext is not thread/instance isolated, so avoid running multiple
+ * GettextTranslator instances with different locales in the same process.
  */
 class GettextTranslator implements TranslatorInterface
 {
@@ -38,8 +42,14 @@ class GettextTranslator implements TranslatorInterface
 
         putenv("LANG={$locale}");
         putenv("LC_ALL={$locale}");
-        setlocale(LC_ALL, $locale);
 
+        if (setlocale(LC_ALL, $locale) === false) {
+            throw new RuntimeException("Failed to set locale: {$locale}");
+        }
+
+        // Kept inline rather than delegating to addDomain(): this class is not
+        // final, and calling an overridable method from a constructor lets a
+        // subclass hook run before the subclass is initialized.
         bindtextdomain($defaultDomain, $directory);
         bind_textdomain_codeset($defaultDomain, $codeset);
         textdomain($defaultDomain);
@@ -47,6 +57,9 @@ class GettextTranslator implements TranslatorInterface
 
     /**
      * Register an additional text domain.
+     *
+     * A missing catalog directory is not an error: gettext then falls back to
+     * returning the key itself, matching the package's graceful degradation.
      */
     public function addDomain(string $domain, string $directory, string $codeset = 'UTF-8'): void
     {

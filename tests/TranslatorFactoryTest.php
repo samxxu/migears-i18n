@@ -76,6 +76,18 @@ final class TranslatorFactoryTest extends TestCase
         ]);
     }
 
+    public function testCreateArrayWithBothFileAndTranslationsThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('either "file" or "translations", not both');
+
+        TranslatorFactory::create([
+            'driver' => 'array',
+            'file' => __DIR__ . '/fixtures/single-domain.php',
+            'translations' => ['HELLO' => 'Hello'],
+        ]);
+    }
+
     // --- Gettext driver ---
 
     public function testCreateGettextReturnsGettextTranslator(): void
@@ -134,12 +146,5 @@ final class TranslatorFactoryTest extends TestCase
         TranslatorFactory::create([
             'driver' => 'redis',
         ]);
-    }
-
-    // --- Version constant ---
-
-    public function testVersionConstant(): void
-    {
-        self::assertSame('2.0.0', TranslatorFactory::VERSION);
     }
 }

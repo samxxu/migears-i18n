@@ -38,6 +38,21 @@ final class GettextTranslatorTest extends TestCase
         }
     }
 
+    public function testConstructorThrowsWhenLocaleUnavailable(): void
+    {
+        if (!function_exists('gettext')) {
+            $this->markTestSkipped('gettext extension is not available');
+        }
+
+        $invalidLocale = 'xx_XX.UTF-8';
+        if (setlocale(LC_ALL, $invalidLocale) !== false) {
+            $this->markTestSkipped("locale {$invalidLocale} is unexpectedly available");
+        }
+
+        $this->expectException(RuntimeException::class);
+        new GettextTranslator(locale: $invalidLocale);
+    }
+
     public function testTranslateReturnsKeyWhenNoCatalogFound(): void
     {
         $translator = new GettextTranslator(
