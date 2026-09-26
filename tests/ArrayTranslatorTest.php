@@ -150,17 +150,20 @@ final class ArrayTranslatorTest extends TestCase
         );
     }
 
-    public function testMixedStructureFallsBackToKeyWithoutWarning(): void
+    public function testMixedStructureThrowsInvalidArgumentException(): void
     {
-        // The first entry is an array, so the input is treated as multi-domain.
-        // A stray non-array entry must degrade to the key rather than emit an
-        // "Illegal string offset" warning.
-        $translator = new ArrayTranslator([
+        $this->expectException(InvalidArgumentException::class);
+
+        new ArrayTranslator([
             'messages' => ['HELLO' => 'Hello'],
             'broken' => 'not an array',
         ]);
+    }
 
-        self::assertSame('Hello', $translator->translate('HELLO'));
-        self::assertSame('HELLO', $translator->translate('HELLO', [], 'broken'));
+    public function testEmptyTranslationsTreatedAsFlat(): void
+    {
+        $translator = new ArrayTranslator([]);
+
+        self::assertSame('HELLO', $translator->translate('HELLO'));
     }
 }

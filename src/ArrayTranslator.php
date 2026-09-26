@@ -35,14 +35,43 @@ class ArrayTranslator implements TranslatorInterface
     public function __construct(array $translations, string $defaultDomain = 'messages')
     {
         $this->defaultDomain = $defaultDomain;
+        $this->translations = $this->normalize($translations, $defaultDomain);
+    }
 
-        // Detect flat vs nested structure
-        $first = reset($translations);
-        if (is_array($first)) {
-            $this->translations = $translations;
-        } else {
-            $this->translations = [$defaultDomain => $translations];
+    /**
+     * Normalize translations into the canonical domain => [key => translation] shape.
+     *
+     * @param array<string, array<string, string>>|array<string, string> $translations
+     * @return array<string, array<string, string>>
+     * @throws InvalidArgumentException if the array mixes scalars and arrays at top level
+     */
+    private function normalize(array $translations, string $defaultDomain): array
+    {
+        if ($translations === []) {
+            return [$defaultDomain => []];
         }
+
+        $allArrays = true;
+        $allScalars = true;
+        foreach ($translations as $value) {
+            if (is_array($value)) {
+                $allScalars = false;
+            } else {
+                $allArrays = false;
+            }
+        }
+
+        if ($allArrays) {
+            return $translations;
+        }
+        if ($allScalars) {
+            return [$defaultDomain => $translations];
+        }
+
+        throw new InvalidArgumentException(
+            'Translations must be either flat (key => string) or nested '
+            . '(domain => [key => string]), not a mix of both.'
+        );
     }
 
     /**
@@ -72,8 +101,7 @@ class ArrayTranslator implements TranslatorInterface
     public function translate(string $key, array $params = [], ?string $domain = null): string
     {
         $domain ??= $this->defaultDomain;
-        $entry = $this->translations[$domain] ?? null;
-        $translation = is_array($entry) ? ($entry[$key] ?? $key) : $key;
+        $translation = $this->translations[$domain][$key] ?? $key;
 
         if ($params === []) {
             return $translation;
