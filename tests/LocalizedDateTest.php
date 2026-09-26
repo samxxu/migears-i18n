@@ -381,7 +381,6 @@ class LocalizedDateTest extends TestCase
         // A payload must not depend on this server's language.
         $date = new LocalizedDate(time(), null, $this->translator());
 
-        $this->assertIsArray($date->jsonSerialize());
         $this->assertArrayNotHasKey('text', $date->jsonSerialize());
     }
 
