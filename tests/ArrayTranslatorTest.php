@@ -160,6 +160,24 @@ final class ArrayTranslatorTest extends TestCase
         ]);
     }
 
+    public function testNestedNonStringValueThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Translation "X" in domain "messages" must be a string, array given');
+
+        /** @phpstan-ignore-next-line — the malformed value is the point */
+        new ArrayTranslator(['messages' => ['X' => ['nested']]]);
+    }
+
+    public function testFlatNonStringValueThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Translation "COUNT" in domain "messages" must be a string, int given');
+
+        /** @phpstan-ignore-next-line — the malformed value is the point */
+        new ArrayTranslator(['COUNT' => 123]);
+    }
+
     public function testEmptyTranslationsTreatedAsFlat(): void
     {
         $translator = new ArrayTranslator([]);

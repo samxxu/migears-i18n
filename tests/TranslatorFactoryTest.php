@@ -88,6 +88,38 @@ final class TranslatorFactoryTest extends TestCase
         ]);
     }
 
+    public function testCreateArrayWithNonStringFileThrowsInsteadOfCasting(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Translator config "file" must be a string, array given');
+
+        TranslatorFactory::create([
+            'driver' => 'array',
+            'file' => ['not', 'a', 'path'],
+        ]);
+    }
+
+    public function testCreateWithNonStringDriverThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Translator config "driver" must be a string, int given');
+
+        TranslatorFactory::create([
+            'driver' => 1,
+        ]);
+    }
+
+    public function testCreateArrayWithNonStringDefaultDomainThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Translator config "defaultDomain" must be a string, array given');
+
+        TranslatorFactory::create([
+            'driver' => 'array',
+            'defaultDomain' => ['messages'],
+        ]);
+    }
+
     // --- Gettext driver ---
 
     public function testCreateGettextReturnsGettextTranslator(): void

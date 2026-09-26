@@ -43,7 +43,8 @@ class ArrayTranslator implements TranslatorInterface
      *
      * @param array<string, array<string, string>>|array<string, string> $translations
      * @return array<string, array<string, string>>
-     * @throws InvalidArgumentException if the array mixes scalars and arrays at top level
+     * @throws InvalidArgumentException if the array mixes scalars and arrays at top level,
+     *                                  or if any translation value is not a string
      */
     private function normalize(array $translations, string $defaultDomain): array
     {
@@ -62,9 +63,16 @@ class ArrayTranslator implements TranslatorInterface
         }
 
         if ($allArrays) {
+            foreach ($translations as $domain => $entries) {
+                self::assertStringValues($entries, (string) $domain);
+            }
+
             return $translations;
         }
+
         if ($allScalars) {
+            self::assertStringValues($translations, $defaultDomain);
+
             return [$defaultDomain => $translations];
         }
 
@@ -72,6 +80,31 @@ class ArrayTranslator implements TranslatorInterface
             'Translations must be either flat (key => string) or nested '
             . '(domain => [key => string]), not a mix of both.'
         );
+    }
+
+    /**
+     * Ensure every translation value is a string.
+     *
+     * Without this check a stray array or number would surface much later as
+     * `TypeError: Return value must be of type string, ... returned` from
+     * translate(), which gives the caller no clue which entry is at fault.
+     *
+     * @param array<array-key, mixed> $entries
+     *
+     * @throws InvalidArgumentException if a value is not a string
+     */
+    private static function assertStringValues(array $entries, string $domain): void
+    {
+        foreach ($entries as $key => $value) {
+            if (!is_string($value)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Translation "%s" in domain "%s" must be a string, %s given',
+                    $key,
+                    $domain,
+                    get_debug_type($value)
+                ));
+            }
+        }
     }
 
     /**

@@ -18,7 +18,7 @@ A minimalist internationalization (i18n) translation library. Zero mandatory dep
 - **Text object** - Deferred translation text object with JSON serialization support
 - **Localized dates** - `LocalizedDate` presents a timestamp in the viewer's timezone, rendering through the translator
 - **English by default** - Returns the key itself as fallback when translation is not found
-- **100% unit test coverage**
+- **Thoroughly unit-tested core API** - Every environment-independent path has a test; gettext tests skip themselves when the extension or the locale is missing
 
 ## Installation
 
@@ -106,6 +106,12 @@ $restored = Text::fromJson(json_decode($json, true));
 ### Gettext Support (Optional)
 
 Requires the `ext-gettext` extension:
+
+> **Process-wide side effects**: the constructor calls `putenv()`, `setlocale(LC_ALL, ...)`,
+> `bindtextdomain()` and `textdomain()`. gettext is not instance-isolated, so two
+> `GettextTranslator` instances with different locales in the same process overwrite each
+> other. Set the locale once at bootstrap rather than switching per request, and prefer
+> `ArrayTranslator` unless you actually need gettext catalogues.
 
 ```php
 use MiGears\I18n\GettextTranslator;
@@ -270,7 +276,7 @@ TranslatorFactory::create(array $config): TranslatorInterface;
 ## Design Principles
 
 - **No singletons** - Translators are plain objects, freely instantiable and injectable
-- **No global state** - Does not depend on any Context or Registry
+- **No global state** - Does not depend on any Context or Registry. The core API (`ArrayTranslator`, `Text`, `TranslatorFactory`) touches no process state; only the optional `GettextTranslator` driver does, because the native extension itself is process-wide (see Gettext Support above)
 - **No logging dependency** - Does not log anything, letting the caller decide how to handle it
 - **English by default** - Translation keys themselves are in English, returning the key directly when no translation is found
 - **Optional translator injection** - Text objects work even without a translator (returns key + interpolation)
@@ -304,7 +310,7 @@ MIT
 - **Text 对象** - 可延迟翻译的文本对象，支持 JSON 序列化
 - **本地化日期** - `LocalizedDate` 按用户时区呈现时间戳，并通过翻译器渲染文案
 - **默认英文** - 找不到翻译时返回 key 本身作为降级
-- **100% 单元测试覆盖率**
+- **核心 API 测试充分** - 所有不依赖环境的路径都有测试覆盖；gettext 相关测试在扩展或 locale 缺失时自动跳过
 
 ## 安装
 
@@ -392,6 +398,11 @@ $restored = Text::fromJson(json_decode($json, true));
 ### Gettext 支持（可选）
 
 需要 `ext-gettext` 扩展：
+
+> **进程级副作用**：构造函数会调用 `putenv()`、`setlocale(LC_ALL, ...)`、`bindtextdomain()`
+> 和 `textdomain()`。gettext 并非实例隔离，同一进程内两个不同 locale 的 `GettextTranslator`
+> 实例会互相覆盖。建议在引导阶段一次性设定 locale，不要按请求切换；除非确实需要 gettext
+> 的 .mo 目录，否则优先使用 `ArrayTranslator`。
 
 ```php
 use MiGears\I18n\GettextTranslator;
@@ -556,7 +567,7 @@ TranslatorFactory::create(array $config): TranslatorInterface;
 ## 设计原则
 
 - **没有单例** - 翻译器是普通对象，可自由实例化和注入
-- **没有全局状态** - 不依赖任何 Context 或 Registry
+- **没有全局状态** - 不依赖任何 Context 或 Registry。核心 API（`ArrayTranslator`、`Text`、`TranslatorFactory`）不触碰任何进程状态；只有可选的 `GettextTranslator` 驱动会，因为原生扩展本身就是进程级的（见上文 Gettext 支持）
 - **没有日志依赖** - 不记录日志，让调用方决定如何处理
 - **默认英文** - 翻译 key 本身就是英文，找不到翻译时直接返回 key
 - **翻译可选注入** - Text 对象在没有翻译器时也能工作（返回 key + 插值）

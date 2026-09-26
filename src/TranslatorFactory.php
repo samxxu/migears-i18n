@@ -54,7 +54,7 @@ class TranslatorFactory
      */
     public static function create(array $config): TranslatorInterface
     {
-        $driver = $config['driver'] ?? 'array';
+        $driver = self::stringOption($config, 'driver', 'array');
 
         return match ($driver) {
             'array' => self::createArray($config),
@@ -64,13 +64,37 @@ class TranslatorFactory
     }
 
     /**
+     * Read a string option from the config.
+     *
+     * Casting to string would silently turn an array into "Array" and yield a
+     * misleading downstream error (e.g. `file not found: Array`), so a wrong
+     * type is rejected up front instead.
+     *
+     * @param array<string, mixed> $config
+     *
+     * @throws InvalidArgumentException if the value is present but not a string
+     */
+    private static function stringOption(array $config, string $key, string $default = ''): string
+    {
+        $value = $config[$key] ?? $default;
+
+        if (!is_string($value)) {
+            throw new InvalidArgumentException(
+                sprintf('Translator config "%s" must be a string, %s given', $key, get_debug_type($value))
+            );
+        }
+
+        return $value;
+    }
+
+    /**
      * Create an ArrayTranslator from config.
      *
      * @param array<string, mixed> $config
      */
     private static function createArray(array $config): ArrayTranslator
     {
-        $defaultDomain = $config['defaultDomain'] ?? 'messages';
+        $defaultDomain = self::stringOption($config, 'defaultDomain', 'messages');
 
         if (isset($config['file']) && isset($config['translations'])) {
             throw new InvalidArgumentException(
@@ -79,7 +103,7 @@ class TranslatorFactory
         }
 
         if (isset($config['file'])) {
-            return ArrayTranslator::fromFile((string) $config['file'], $defaultDomain);
+            return ArrayTranslator::fromFile(self::stringOption($config, 'file'), $defaultDomain);
         }
 
         $translations = $config['translations'] ?? [];
@@ -98,13 +122,16 @@ class TranslatorFactory
      */
     private static function createGettext(array $config): GettextTranslator
     {
-        $domain = $config['domain'] ?? $config['defaultDomain'] ?? 'messages';
+        // Fold the "defaultDomain" alias onto "domain" so both share one path.
+        if (!isset($config['domain']) && isset($config['defaultDomain'])) {
+            $config['domain'] = $config['defaultDomain'];
+        }
 
         return new GettextTranslator(
-            defaultDomain: (string) $domain,
-            locale: (string) ($config['locale'] ?? 'en_US.UTF-8'),
-            directory: (string) ($config['directory'] ?? './locale'),
-            codeset: (string) ($config['codeset'] ?? 'UTF-8'),
+            defaultDomain: self::stringOption($config, 'domain', 'messages'),
+            locale: self::stringOption($config, 'locale', 'en_US.UTF-8'),
+            directory: self::stringOption($config, 'directory', './locale'),
+            codeset: self::stringOption($config, 'codeset', 'UTF-8'),
         );
     }
 }

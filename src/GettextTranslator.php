@@ -27,6 +27,7 @@ class GettextTranslator implements TranslatorInterface
      * @param string $codeset       character encoding (default: UTF-8)
      *
      * @throws RuntimeException if gettext extension is not available
+     * @throws RuntimeException if the locale cannot be set
      */
     public function __construct(
         string $defaultDomain = 'messages',
@@ -40,19 +41,48 @@ class GettextTranslator implements TranslatorInterface
 
         $this->defaultDomain = $defaultDomain;
 
+        // putenv() has no undo, so capture the environment first: a failed
+        // construction must not leave the process with a locale that no
+        // translator is actually using.
+        $previousEnv = ['LANG' => getenv('LANG'), 'LC_ALL' => getenv('LC_ALL')];
+
         putenv("LANG={$locale}");
         putenv("LC_ALL={$locale}");
 
         if (setlocale(LC_ALL, $locale) === false) {
+            self::restoreEnv($previousEnv);
+
             throw new RuntimeException("Failed to set locale: {$locale}");
         }
 
+        // The bindings below return false for a merely missing catalogue
+        // directory, which is not an error here: gettext then returns the key
+        // itself, the same graceful degradation the array driver documents.
+        // setlocale() is the only fatal step, because a silently wrong locale
+        // would render the wrong language instead of a harmless fallback.
+        //
         // Kept inline rather than delegating to addDomain(): this class is not
         // final, and calling an overridable method from a constructor lets a
         // subclass hook run before the subclass is initialized.
         bindtextdomain($defaultDomain, $directory);
         bind_textdomain_codeset($defaultDomain, $codeset);
         textdomain($defaultDomain);
+    }
+
+    /**
+     * Restore environment variables captured before a failed construction.
+     *
+     * @param array<string, string|false> $env
+     */
+    private static function restoreEnv(array $env): void
+    {
+        foreach ($env as $name => $value) {
+            if ($value === false) {
+                putenv($name); // was not set before: unset it again
+            } else {
+                putenv("{$name}={$value}");
+            }
+        }
     }
 
     /**

@@ -19,25 +19,6 @@ final class GettextTranslatorTest extends TestCase
         }
     }
 
-    public function testConstructorThrowsWhenGettextNotAvailable(): void
-    {
-        // We test this by temporarily redefining the check - but since we
-        // can't override function_exists, we test the happy path and verify
-        // the exception class exists.
-        if (!function_exists('gettext')) {
-            $this->expectException(RuntimeException::class);
-            new GettextTranslator();
-        } else {
-            // When gettext is available, construction should succeed
-            $translator = new GettextTranslator(
-                defaultDomain: 'messages',
-                locale: 'en_US.UTF-8',
-                directory: __DIR__ . '/fixtures/locale',
-            );
-            self::assertInstanceOf(GettextTranslator::class, $translator);
-        }
-    }
-
     public function testConstructorThrowsWhenLocaleUnavailable(): void
     {
         if (!function_exists('gettext')) {
@@ -51,6 +32,33 @@ final class GettextTranslatorTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         new GettextTranslator(locale: $invalidLocale);
+    }
+
+    public function testFailedConstructionRestoresEnvironment(): void
+    {
+        if (!function_exists('gettext')) {
+            $this->markTestSkipped('gettext extension is not available');
+        }
+
+        $invalidLocale = 'xx_XX.UTF-8';
+        if (setlocale(LC_ALL, $invalidLocale) !== false) {
+            $this->markTestSkipped("locale {$invalidLocale} is unexpectedly available");
+        }
+
+        $previousLang = getenv('LANG');
+        $previousLcAll = getenv('LC_ALL');
+
+        try {
+            new GettextTranslator(locale: $invalidLocale);
+            self::fail('Expected RuntimeException for an unavailable locale');
+        } catch (RuntimeException) {
+            // expected
+        }
+
+        // putenv() has no undo: a constructor that fails halfway must not
+        // leave the process pointing at a locale nobody is using.
+        self::assertSame($previousLang, getenv('LANG'));
+        self::assertSame($previousLcAll, getenv('LC_ALL'));
     }
 
     public function testTranslateReturnsKeyWhenNoCatalogFound(): void
