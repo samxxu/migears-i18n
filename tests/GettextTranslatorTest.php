@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace MiGears\I18n\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use MiGears\I18n\GettextTranslator;
 use InvalidArgumentException;
 use RuntimeException;
 
 #[CoversClass(GettextTranslator::class)]
+#[Group('gettext')]
 final class GettextTranslatorTest extends TestCase
 {
     protected function setUp(): void
