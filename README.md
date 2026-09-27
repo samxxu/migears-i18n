@@ -13,7 +13,7 @@ A minimalist internationalization (i18n) translation library. Zero mandatory dep
 - **Zero mandatory dependencies** - Works out of the box, no extensions required
 - **Minimalist API** - `new ArrayTranslator($translations)` is all you need
 - **PHP array translation files** - No .mo/.po files, easy to understand and maintain
-- **Variable interpolation** - `translate('HELLO_USER', ['user' => 'Alice'])` → `"Hello, Alice"`
+- **Variable interpolation** - `translate('HELLO_USER', ['user' => 'Alice'])` → `"Hello, Alice"`; values must be scalar, `Stringable` or `null`, anything else throws instead of printing `Array`
 - **Multi-domain support** - Organize translations by module
 - **Text object** - Deferred translation text object with JSON serialization support
 - **Localized dates** - `LocalizedDate` presents a timestamp in the viewer's timezone, rendering through the translator
@@ -112,6 +112,12 @@ Requires the `ext-gettext` extension:
 > `GettextTranslator` instances with different locales in the same process overwrite each
 > other. Set the locale once at bootstrap rather than switching per request, and prefer
 > `ArrayTranslator` unless you actually need gettext catalogues.
+>
+> **`LANGUAGE` outranks `locale:`**: GNU gettext consults the `LANGUAGE` environment
+> variable before `LC_ALL`/`LANG`, so where `LANGUAGE` is already set the `locale:`
+> argument does not decide which catalogue is read — with `LANGUAGE=de_DE`, an
+> `en_US.UTF-8` translator falls back to returning the key. This class does not touch
+> `LANGUAGE`; unset it if `locale:` is meant to be authoritative.
 
 ```php
 use MiGears\I18n\GettextTranslator;
@@ -305,7 +311,7 @@ MIT
 - **零强制依赖** - 开箱即用，不需要任何扩展
 - **极简 API** - `new ArrayTranslator($translations)` 就能用
 - **PHP 数组翻译文件** - 不用 .mo/.po，易于理解和维护
-- **变量插值** - `translate('HELLO_USER', ['user' => 'Alice'])` → `"Hello, Alice"`
+- **变量插值** - `translate('HELLO_USER', ['user' => 'Alice'])` → `"Hello, Alice"`；参数值须为标量、`Stringable` 或 `null`，其余类型直接抛异常而不是输出 `Array`
 - **多 domain 支持** - 按模块组织翻译
 - **Text 对象** - 可延迟翻译的文本对象，支持 JSON 序列化
 - **本地化日期** - `LocalizedDate` 按用户时区呈现时间戳，并通过翻译器渲染文案
@@ -403,6 +409,11 @@ $restored = Text::fromJson(json_decode($json, true));
 > 和 `textdomain()`。gettext 并非实例隔离，同一进程内两个不同 locale 的 `GettextTranslator`
 > 实例会互相覆盖。建议在引导阶段一次性设定 locale，不要按请求切换；除非确实需要 gettext
 > 的 .mo 目录，否则优先使用 `ArrayTranslator`。
+>
+> **`LANGUAGE` 的优先级高于 `locale:`**：GNU gettext 在 `LC_ALL`/`LANG` 之前先查
+> `LANGUAGE` 环境变量，因此当 `LANGUAGE` 已被设置时，`locale:` 参数并不决定读取哪个目录——
+> 例如 `LANGUAGE=de_DE` 时，一个 `en_US.UTF-8` 的翻译器会直接回退为返回 key。本类不会改动
+> `LANGUAGE`；若希望 `locale:` 成为权威值，请先将其 unset。
 
 ```php
 use MiGears\I18n\GettextTranslator;

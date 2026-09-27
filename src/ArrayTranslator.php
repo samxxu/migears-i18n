@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MiGears\I18n;
 
 use InvalidArgumentException;
+use Stringable;
 
 /**
  * Array-based translator that loads translations from PHP arrays.
@@ -146,12 +147,22 @@ class ArrayTranslator implements TranslatorInterface
     /**
      * Interpolate %placeholders% in the translation string.
      *
-     * @param array<string, mixed> $params
+     * @param array<string, mixed> $params values must be scalar, Stringable or null
+     *
+     * @throws InvalidArgumentException if a parameter value cannot be rendered as text
      */
     private function interpolate(string $text, array $params): string
     {
         $replace = [];
         foreach ($params as $key => $value) {
+            if ($value !== null && !is_scalar($value) && !$value instanceof Stringable) {
+                throw new InvalidArgumentException(sprintf(
+                    'Interpolation parameter "%s" must be a scalar, Stringable or null, %s given',
+                    $key,
+                    get_debug_type($value)
+                ));
+            }
+
             $replace['%' . $key . '%'] = (string) $value;
         }
 

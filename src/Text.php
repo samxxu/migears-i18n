@@ -26,14 +26,29 @@ final class Text implements Stringable, JsonSerializable
 
     /**
      * @param string               $key    translation key
-     * @param array<string, mixed> $params interpolation parameters
+     * @param array<string, mixed> $params interpolation parameters; values must be
+     *                                     scalar, Stringable or null
      * @param string|null          $domain optional text domain
+     *
+     * @throws InvalidArgumentException if a parameter value cannot be rendered as text
      */
     public function __construct(
         private readonly string $key,
         private readonly array $params = [],
         private readonly ?string $domain = null,
     ) {
+        // Checked here rather than in __toString(): this class is final and its
+        // params are readonly, so validating at construction guarantees that
+        // rendering can never throw from inside a string context.
+        foreach ($params as $name => $value) {
+            if ($value !== null && !is_scalar($value) && !$value instanceof Stringable) {
+                throw new InvalidArgumentException(sprintf(
+                    'Interpolation parameter "%s" must be a scalar, Stringable or null, %s given',
+                    $name,
+                    get_debug_type($value)
+                ));
+            }
+        }
     }
 
     /**

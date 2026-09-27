@@ -7,6 +7,7 @@ namespace MiGears\I18n\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use MiGears\I18n\GettextTranslator;
+use InvalidArgumentException;
 use RuntimeException;
 
 #[CoversClass(GettextTranslator::class)]
@@ -84,6 +85,20 @@ final class GettextTranslatorTest extends TestCase
         // Even without a .mo file, the key is returned and interpolation works
         $result = $translator->translate('Hello, %user%', ['user' => 'Alice']);
         self::assertSame('Hello, Alice', $result);
+    }
+
+    public function testTranslateThrowsForArrayParam(): void
+    {
+        $translator = new GettextTranslator(
+            defaultDomain: 'messages',
+            locale: 'en_US.UTF-8',
+            directory: __DIR__ . '/fixtures/locale',
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Interpolation parameter "user" must be a scalar, Stringable or null, array given');
+
+        $translator->translate('Hello, %user%', ['user' => ['a']]);
     }
 
     public function testTranslateWithEmptyParams(): void

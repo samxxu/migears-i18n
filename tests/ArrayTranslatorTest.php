@@ -45,6 +45,46 @@ final class ArrayTranslatorTest extends TestCase
         self::assertSame('Total: 42', $translator->translate('COUNT', ['count' => 42]));
     }
 
+    public function testTranslateThrowsForArrayParam(): void
+    {
+        $translator = new ArrayTranslator(['MSG' => 'Hello %name%']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Interpolation parameter "name" must be a scalar, Stringable or null, array given');
+
+        $translator->translate('MSG', ['name' => ['a', 'b']]);
+    }
+
+    public function testTranslateThrowsForNonStringableObjectParam(): void
+    {
+        $translator = new ArrayTranslator(['MSG' => 'Hello %name%']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must be a scalar, Stringable or null, stdClass given');
+
+        $translator->translate('MSG', ['name' => new \stdClass()]);
+    }
+
+    public function testTranslateAcceptsStringableParam(): void
+    {
+        $translator = new ArrayTranslator(['MSG' => 'Hello %name%']);
+        $value = new class {
+            public function __toString(): string
+            {
+                return 'OBJ';
+            }
+        };
+
+        self::assertSame('Hello OBJ', $translator->translate('MSG', ['name' => $value]));
+    }
+
+    public function testTranslateAcceptsNullAndBoolParams(): void
+    {
+        $translator = new ArrayTranslator(['MSG' => '[%a%][%b%]']);
+
+        self::assertSame('[][]', $translator->translate('MSG', ['a' => null, 'b' => false]));
+    }
+
     public function testTranslateWithEmptyParamsReturnsTranslationAsIs(): void
     {
         $translator = new ArrayTranslator(['HELLO' => 'Hello']);

@@ -180,6 +180,42 @@ final class TextTest extends TestCase
         Text::fromJson(['key' => 123]);
     }
 
+    public function testConstructorThrowsForArrayParam(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Interpolation parameter "name" must be a scalar, Stringable or null, array given');
+
+        new Text('Hello %name%', ['name' => ['a']]);
+    }
+
+    public function testConstructorAcceptsStringableParam(): void
+    {
+        $value = new class {
+            public function __toString(): string
+            {
+                return 'OBJ';
+            }
+        };
+
+        $text = new Text('Hello %name%', ['name' => $value]);
+
+        self::assertSame('Hello OBJ', (string) $text);
+    }
+
+    public function testFromJsonWithNonArrayParamsDowngradesToEmpty(): void
+    {
+        $text = Text::fromJson(['key' => 'MSG', 'params' => 'not an array']);
+
+        self::assertSame([], $text->getParams());
+    }
+
+    public function testFromJsonWithUnrenderableParamValueThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Text::fromJson(['key' => 'MSG', 'params' => ['name' => ['a']]]);
+    }
+
     public function testRoundTripJsonSerializeAndFromJson(): void
     {
         $original = new Text('WELCOME', ['user' => 'Alice', 'count' => 3], 'app');
