@@ -17,18 +17,19 @@ Legend — **P0** functional or security · **P1** documentation that fails when
 
 | | |
 |---|---|
-| Unsettled | P0 0 · P1 0 · P2 0 · P3 2 · other 2 |
-| Settled | 0 of 4 |
-| Waiting on the owner | `P3-1`, `P3-2` |
-| Waiting on the reviewer | `G3`, `G4` |
+| Unsettled | P0 0 · P1 0 · P2 0 · P3 2 · other 1 |
+| Settled | 2 of 5 |
+| Waiting on the owner | `P3-3` |
 | Waiting on the coordinator | _nothing_ |
+| Waiting on the reviewer | `P3-2`, `G4` |
 | Deferred, owing nobody | _nothing_ |
 
 | id | level | status | title |
 |---|---|---|---|
-| [`P3-1`](issues/P3-1.md) | P3 | **open** | Interpolation casts every value with `(string)`, so an array parameter … |
-| [`P3-2`](issues/P3-2.md) | P3 | **open** | `restoreEnv()` only restores `LANG` and `LC_ALL`; gettext also reads … |
-| [`G3`](issues/G3.md) | - | **fixed** | Skip guard: the gettext tests skip when the extension is missing … |
+| [`P3-1`](issues/P3-1.md) | P3 | **verified** | Interpolation casts every value with `(string)`, so an array parameter … |
+| [`P3-2`](issues/P3-2.md) | P3 | **rejected** | `restoreEnv()` only restores `LANG` and `LC_ALL`; gettext also reads … |
+| [`P3-3`](issues/P3-3.md) | P3 | **open** | TranslatorFactory has no schema validation for the driver config array … |
+| [`G3`](issues/G3.md) | - | **verified** | Skip guard: the gettext tests skip when the extension is missing … |
 | [`G4`](issues/G4.md) | - | **rejected** | Document standard: the project standard is that every document is … |
 
 ## Unclosed
@@ -38,15 +39,14 @@ highest severity first. `waiting on` is the party who acts next, read from that 
 
 | | |
 |---|---|
-| Unclosed | **4** of 4 |
-| By status | `open` 2 · `rejected` 1 · `fixed` 1 |
-| Waiting on | owner 2 · reviewer 2 |
+| Unclosed | **3** of 5 |
+| By status | `open` 1 · `rejected` 2 |
+| Waiting on | owner 1 · reviewer 2 |
 
 | level | item | status | waiting on | title |
 |---|---|---|---|---|
-| **P3** | [`P3-1`](issues/P3-1.md) | `open` | owner | Interpolation casts every value with `(string)`, so an array parameter … |
-| **P3** | [`P3-2`](issues/P3-2.md) | `open` | owner | `restoreEnv()` only restores `LANG` and `LC_ALL`; gettext also reads … |
-| **-** | [`G3`](issues/G3.md) | `fixed` | reviewer | Skip guard: the gettext tests skip when the extension is missing … |
+| **P3** | [`P3-2`](issues/P3-2.md) | `rejected` | reviewer | `restoreEnv()` only restores `LANG` and `LC_ALL`; gettext also reads … |
+| **P3** | [`P3-3`](issues/P3-3.md) | `open` | owner | TranslatorFactory has no schema validation for the driver config array … |
 | **-** | [`G4`](issues/G4.md) | `rejected` | reviewer | Document standard: the project standard is that every document is … |
 
 ## Verdict
@@ -88,18 +88,19 @@ No test for TranslatorFactory with a malformed config array (wrong types, missin
 
 | | |
 |---|---|
-| 未了结 | P0 0 · P1 0 · P2 0 · P3 2 · 其他 2 |
-| 已了结 | 0 / 4 |
-| 等负责人 | `P3-1`, `P3-2` |
-| 等评审方 | `G3`, `G4` |
+| 未了结 | P0 0 · P1 0 · P2 0 · P3 2 · 其他 1 |
+| 已了结 | 2 / 5 |
+| 等模块主 | `P3-3` |
 | 等协调人 | _无_ |
+| 等评审方 | `P3-2`, `G4` |
 | 已暂缓，不欠谁 | _无_ |
 
 | id | 级别 | 状态 | 标题 |
 |---|---|---|---|
-| [`P3-1`](issues/P3-1.md) | P3 | **open** | 插值对所有值做 (string) 强转，因此数组参数会产生 PHP「Array to string conversion」警告并输出 … |
-| [`P3-2`](issues/P3-2.md) | P3 | **open** | restoreEnv() 只还原 LANG 与 LC_ALL；gettext 还会读 … |
-| [`G3`](issues/G3.md) | - | **fixed** | 跳过守卫：缺少 gettext 扩展时 gettext … |
+| [`P3-1`](issues/P3-1.md) | P3 | **verified** | 插值对所有值做 (string) 强转，因此数组参数会产生 PHP「Array to string conversion」警告并输出 … |
+| [`P3-2`](issues/P3-2.md) | P3 | **rejected** | restoreEnv() 只还原 LANG 与 LC_ALL；gettext 还会读 … |
+| [`P3-3`](issues/P3-3.md) | P3 | **open** | TranslatorFactory 对驱动配置数组没有 schema 校验——拼写错误的键或错误的类型会被静默忽略，或在下游产生令人困惑的错误。 |
+| [`G3`](issues/G3.md) | - | **verified** | 跳过守卫：缺少 gettext 扩展时 gettext … |
 | [`G4`](issues/G4.md) | - | **rejected** | 文档标准：项目标准是每一份文档都上英下汉——英文块在前，完全相同的中文块在后。本模块的 `CHANGELOG.md` 为纯英文。 … |
 
 ## 未关闭
@@ -109,15 +110,14 @@ No test for TranslatorFactory with a malformed config array (wrong types, missin
 
 | | |
 |---|---|
-| 未关闭 | **4** / 4 |
-| 按状态 | `open` 2 · `rejected` 1 · `fixed` 1 |
-| 等在谁 | 负责人 2 · 评审方 2 |
+| 未关闭 | **3** / 5 |
+| 按状态 | `open` 1 · `rejected` 2 |
+| 等在谁 | 模块主 1 · 评审方 2 |
 
 | 级别 | 条目 | 状态 | 等在谁 | 标题 |
 |---|---|---|---|---|
-| **P3** | [`P3-1`](issues/P3-1.md) | `open` | 负责人 | 插值对所有值做 (string) 强转，因此数组参数会产生 PHP「Array to string conversion」警告并输出 … |
-| **P3** | [`P3-2`](issues/P3-2.md) | `open` | 负责人 | restoreEnv() 只还原 LANG 与 LC_ALL；gettext 还会读 … |
-| **-** | [`G3`](issues/G3.md) | `fixed` | 评审方 | 跳过守卫：缺少 gettext 扩展时 gettext … |
+| **P3** | [`P3-2`](issues/P3-2.md) | `rejected` | 评审方 | restoreEnv() 只还原 LANG 与 LC_ALL；gettext 还会读 … |
+| **P3** | [`P3-3`](issues/P3-3.md) | `open` | 模块主 | TranslatorFactory 对驱动配置数组没有 schema 校验——拼写错误的键或错误的类型会被静默忽略，或在下游产生令人困惑的错误。 |
 | **-** | [`G4`](issues/G4.md) | `rejected` | 评审方 | 文档标准：项目标准是每一份文档都上英下汉——英文块在前，完全相同的中文块在后。本模块的 `CHANGELOG.md` 为纯英文。 … |
 
 ## 结论
