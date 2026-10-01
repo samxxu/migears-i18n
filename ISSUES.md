@@ -4,12 +4,12 @@
 > per item: a front-matter header and a thread. This file is generated from them and can be rewritten at
 > any time; edit an item, never this file.
 >
-> From the miGears Full-Module Code Review Report (5th round, 2026-09-28).
+> From the miGears Full-Module Code Review Report (6th round, 2026-10-01).
 
 | | |
 |---|---|
 | Status | **Best state** |
-| Size | src 495 lines (net) · 119 tests (1 skipped) · 6 src files |
+| Size | src 496 lines (net) · 119 tests (1 skipped) · 6 src files |
 
 Legend — **P0** functional or security · **P1** documentation that fails when copied · **P2** robustness · **P3** metadata and docs
 
@@ -19,8 +19,8 @@ Legend — **P0** functional or security · **P1** documentation that fails when
 |---|---|
 | Unsettled | P0 0 · P1 0 · P2 0 · P3 2 · other 1 |
 | Settled | 2 of 5 |
-| Waiting on the owner | `P3-3` |
-| Waiting on the coordinator | _nothing_ |
+| Waiting on the owner | _nothing_ |
+| Waiting on the coordinator | `P3-3` |
 | Waiting on the reviewer | `P3-2`, `G4` |
 | Deferred, owing nobody | _nothing_ |
 
@@ -28,7 +28,7 @@ Legend — **P0** functional or security · **P1** documentation that fails when
 |---|---|---|---|
 | [`P3-1`](issues/P3-1.md) | P3 | **verified** | Interpolation casts every value with `(string)`, so an array parameter … |
 | [`P3-2`](issues/P3-2.md) | P3 | **rejected** | `restoreEnv()` only restores `LANG` and `LC_ALL`; gettext also reads … |
-| [`P3-3`](issues/P3-3.md) | P3 | **open** | TranslatorFactory has no schema validation for the driver config array … |
+| [`P3-3`](issues/P3-3.md) | P3 | **question** | TranslatorFactory has no schema validation for the driver config array … |
 | [`G3`](issues/G3.md) | - | **verified** | Skip guard: the gettext tests skip when the extension is missing … |
 | [`G4`](issues/G4.md) | - | **rejected** | Document standard: the project standard is that every document is … |
 
@@ -40,26 +40,26 @@ highest severity first. `waiting on` is the party who acts next, read from that 
 | | |
 |---|---|
 | Unclosed | **3** of 5 |
-| By status | `open` 1 · `rejected` 2 |
-| Waiting on | owner 1 · reviewer 2 |
+| By status | `question` 1 · `rejected` 2 |
+| Waiting on | coordinator 1 · reviewer 2 |
 
 | level | item | status | waiting on | title |
 |---|---|---|---|---|
 | **P3** | [`P3-2`](issues/P3-2.md) | `rejected` | reviewer | `restoreEnv()` only restores `LANG` and `LC_ALL`; gettext also reads … |
-| **P3** | [`P3-3`](issues/P3-3.md) | `open` | owner | TranslatorFactory has no schema validation for the driver config array … |
+| **P3** | [`P3-3`](issues/P3-3.md) | `question` | coordinator | TranslatorFactory has no schema validation for the driver config array … |
 | **-** | [`G4`](issues/G4.md) | `rejected` | reviewer | Document standard: the project standard is that every document is … |
 
 ## Verdict
 
-A full-featured i18n toolkit with array and gettext translators, text helpers and localized dates; only metadata and doc-completeness items remain.
+The factory’s first half is genuinely fixed; what remains open is a legitimate public-behaviour question, not a defect.
 
 ## Fixed since the last round
 
-G3 skip-guard confirmed working (two CI jobs so one always runs with --fail-on-skipped); P3-1/P3-2 metadata items addressed.
+No item was awaiting a verdict. The factory’s type guards and the three interpolation guards are consistent with the record, and the rejected CHANGELOG-scope item still stands.
 
 ## Test gaps
 
-No test for TranslatorFactory with a malformed config array (wrong types, missing required keys); no test for gettext constructor failure path; no test for Text::printf with missing arguments.
+gettext cases skip when the extension is absent; the two drivers’ "missing translation falls back to the key" behaviour is consistent but has no cross-driver test; ArrayTranslator::fromFile() require-s the configured PHP file, covered only by the bundled fixture.
 
 ## Verification protocol
 
@@ -75,12 +75,12 @@ No test for TranslatorFactory with a malformed config array (wrong types, missin
 > 本模块问题的概览。条目本体在 [`issues/`](issues/README.md)，一条目一文件：前置字段加讨论串。
 > 本文件由条目生成，随时可以整段重写；请改条目，不要改本文件。
 >
-> 出自 miGears 全模块代码评审报告（5th round，2026-09-28）。
+> 出自 miGears 全模块代码评审报告（6th round，2026-10-01）。
 
 | | |
 |---|---|
 | 状态 | **状态最好** |
-| 体量 | src 495 行（净）· 119 个用例（1 跳过）· 6 个源文件 |
+| 体量 | src 496 行（净）· 119 个用例（1 跳过）· 6 个源文件 |
 
 级别说明 — **P0** 功能性或安全级 · **P1** 文档照抄即错 · **P2** 健壮性 · **P3** 元数据与文档
 
@@ -90,8 +90,8 @@ No test for TranslatorFactory with a malformed config array (wrong types, missin
 |---|---|
 | 未了结 | P0 0 · P1 0 · P2 0 · P3 2 · 其他 1 |
 | 已了结 | 2 / 5 |
-| 等模块主 | `P3-3` |
-| 等协调人 | _无_ |
+| 等模块主 | _无_ |
+| 等协调人 | `P3-3` |
 | 等评审方 | `P3-2`, `G4` |
 | 已暂缓，不欠谁 | _无_ |
 
@@ -99,7 +99,7 @@ No test for TranslatorFactory with a malformed config array (wrong types, missin
 |---|---|---|---|
 | [`P3-1`](issues/P3-1.md) | P3 | **verified** | 插值对所有值做 (string) 强转，因此数组参数会产生 PHP「Array to string conversion」警告并输出 … |
 | [`P3-2`](issues/P3-2.md) | P3 | **rejected** | restoreEnv() 只还原 LANG 与 LC_ALL；gettext 还会读 … |
-| [`P3-3`](issues/P3-3.md) | P3 | **open** | TranslatorFactory 对驱动配置数组没有 schema 校验——拼写错误的键或错误的类型会被静默忽略，或在下游产生令人困惑的错误。 |
+| [`P3-3`](issues/P3-3.md) | P3 | **question** | TranslatorFactory 对驱动配置数组没有 schema 校验——拼写错误的键或错误的类型会被静默忽略，或在下游产生令人困惑的错误。 |
 | [`G3`](issues/G3.md) | - | **verified** | 跳过守卫：缺少 gettext 扩展时 gettext … |
 | [`G4`](issues/G4.md) | - | **rejected** | 文档标准：项目标准是每一份文档都上英下汉——英文块在前，完全相同的中文块在后。本模块的 `CHANGELOG.md` 为纯英文。 … |
 
@@ -111,26 +111,26 @@ No test for TranslatorFactory with a malformed config array (wrong types, missin
 | | |
 |---|---|
 | 未关闭 | **3** / 5 |
-| 按状态 | `open` 1 · `rejected` 2 |
-| 等在谁 | 模块主 1 · 评审方 2 |
+| 按状态 | `question` 1 · `rejected` 2 |
+| 等在谁 | 协调人 1 · 评审方 2 |
 
 | 级别 | 条目 | 状态 | 等在谁 | 标题 |
 |---|---|---|---|---|
 | **P3** | [`P3-2`](issues/P3-2.md) | `rejected` | 评审方 | restoreEnv() 只还原 LANG 与 LC_ALL；gettext 还会读 … |
-| **P3** | [`P3-3`](issues/P3-3.md) | `open` | 模块主 | TranslatorFactory 对驱动配置数组没有 schema 校验——拼写错误的键或错误的类型会被静默忽略，或在下游产生令人困惑的错误。 |
+| **P3** | [`P3-3`](issues/P3-3.md) | `question` | 协调人 | TranslatorFactory 对驱动配置数组没有 schema 校验——拼写错误的键或错误的类型会被静默忽略，或在下游产生令人困惑的错误。 |
 | **-** | [`G4`](issues/G4.md) | `rejected` | 评审方 | 文档标准：项目标准是每一份文档都上英下汉——英文块在前，完全相同的中文块在后。本模块的 `CHANGELOG.md` 为纯英文。 … |
 
 ## 结论
 
-一个功能完整的 i18n 工具集，含数组与 gettext 翻译器、文本辅助函数与本地化日期；仅剩元数据与文档完整性问题。
+工厂的前半确已修好；仍未决的是一条正当的公开行为问题，不是缺陷。
 
 ## 本轮已修复确认
 
-G3 skip-guard confirmed working (two CI jobs so one always runs with --fail-on-skipped); P3-1/P3-2 metadata items addressed.
+No item was awaiting a verdict. The factory’s type guards and the three interpolation guards are consistent with the record, and the rejected CHANGELOG-scope item still stands.
 
 ## 测试盲区
 
-无 TranslatorFactory 配置数组格式错误测试（类型错误、缺必要键）；无 gettext 构造失败路径测试；无 Text::printf 参数缺失测试。
+扩展缺失时 gettext 用例跳过；两驱动「缺翻译回落为 key」的行为一致，但无跨驱动对照用例；ArrayTranslator::fromFile() 会 require 配置指定的 PHP 文件，仅由自带夹具覆盖。
 
 ## 验证方式
 
