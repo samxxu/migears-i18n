@@ -20,6 +20,21 @@ A minimalist internationalization (i18n) translation library. Zero mandatory dep
 - **English by default** - Returns the key itself as fallback when translation is not found
 - **Thoroughly unit-tested core API** - Every environment-independent path has a test; gettext tests skip themselves when the extension or the locale is missing
 
+## Boundaries
+
+**In scope**
+
+- `TranslatorInterface::translate()` and its two drivers: `ArrayTranslator` over flat or per-domain PHP array files, and the optional `GettextTranslator` when `ext-gettext` is installed.
+- Key lookup with `%param%` interpolation (values must be scalar, `Stringable` or `null`), multi-domain selection, and returning the key itself as the fallback when no translation is found.
+- Deferred text via `Text` (with JSON serialization), driver selection via `TranslatorFactory`, and timezone-aware rendering of the `date.*` keys by `LocalizedDate` (serialization stays raw data).
+
+**Not in scope (by design)**
+
+- Choosing the locale — no HTTP request, `Accept-Language`, cookie or session parsing; the caller picks the locale and injects the translator.
+- Routing and URL localization — no route table, no path matching, nothing that maps a request to a language.
+- Persisting or caching translations — no database, file store or cache backend; that belongs to `migears/dao` / `migears/sql` and `migears/cache`.
+- Logging, and any dependency beyond PHP itself (`ext-gettext` is optional) — logging belongs to `migears/log`.
+
 ## Installation
 
 ```bash
@@ -317,6 +332,21 @@ MIT
 - **本地化日期** - `LocalizedDate` 按用户时区呈现时间戳，并通过翻译器渲染文案
 - **默认英文** - 找不到翻译时返回 key 本身作为降级
 - **核心 API 测试充分** - 所有不依赖环境的路径都有测试覆盖；gettext 相关测试在扩展或 locale 缺失时自动跳过
+
+## 边界
+
+**范围内**
+
+- `TranslatorInterface::translate()` 及其两个驱动：基于扁平或按 domain 分组的 PHP 数组翻译文件的 `ArrayTranslator`，以及安装 `ext-gettext` 后可选使用的 `GettextTranslator`。
+- key 查找与 `%param%` 插值（值须为标量、`Stringable` 或 `null`）、多 domain 选择，以及找不到译文时返回 key 本身的降级。
+- 通过 `Text` 延迟翻译（含 JSON 序列化）、通过 `TranslatorFactory` 选择驱动，以及由 `LocalizedDate` 按用户时区渲染 `date.*` 文案（序列化保持原始数据）。
+
+**范围外（刻意不做）**
+
+- 决定 locale —— 不解析 HTTP 请求、`Accept-Language`、cookie 或 session；locale 由调用方选定并注入翻译器。
+- 路由与 URL 本地化 —— 没有路由表、没有 path 匹配，也不负责把请求映射到某种语言。
+- 持久化或缓存译文 —— 不访问数据库、文件存储或缓存后端；这些属于 `migears/dao` / `migears/sql` 与 `migears/cache`。
+- 日志，以及 PHP 之外的任何依赖（`ext-gettext` 为可选扩展）—— 日志属于 `migears/log`。
 
 ## 安装
 
