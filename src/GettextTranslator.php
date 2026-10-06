@@ -20,6 +20,8 @@ use Stringable;
  */
 class GettextTranslator implements TranslatorInterface
 {
+    use CreatesText;
+
     private readonly string $defaultDomain;
 
     /**

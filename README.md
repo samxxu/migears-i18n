@@ -1,6 +1,6 @@
 # migears/i18n
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.3.0-blue)
 
 A minimalist internationalization (i18n) translation library. Zero mandatory dependencies, PHP 8.1+, based on PHP array translation files, with optional gettext support.
 
@@ -108,6 +108,15 @@ $text = new Text('HELLO_USER', ['user' => 'Alice']);
 // Inject translator later
 $text->setTranslator($translator);
 
+echo $text; // Hello, Alice
+```
+
+When the translator is already at hand, every translator exposes `newText()` as a shortcut that returns a `Text` with the translator bound, sparing the `setTranslator()` call. Rendering stays deferred — create the text now, stringify it later:
+
+```php
+$text = $translator->newText('HELLO_USER', ['user' => 'Alice']);
+
+// ... later, e.g. when a template or API response is rendered
 echo $text; // Hello, Alice
 ```
 
@@ -235,6 +244,9 @@ The keys it looks up:
 interface TranslatorInterface
 {
     public function translate(string $key, array $params = [], ?string $domain = null): string;
+
+    // Shortcut: return a Text with this translator already bound
+    public function newText(string $key, array $params = [], ?string $domain = null): Text;
 }
 ```
 
@@ -261,6 +273,9 @@ $text->getKey(): string;
 $text->getParams(): array;
 $text->getDomain(): ?string;
 (string) $text; // triggers translation
+
+// Shortcut when the translator is already at hand
+$translator->newText(string $key, array $params = [], ?string $domain = null): Text;
 
 // JSON serialization
 $text->jsonSerialize(): array;
@@ -317,7 +332,7 @@ MIT
 
 # migears/i18n
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.3.0-blue)
 
 极简国际化（i18n）翻译库。零强制依赖，PHP 8.1+，基于 PHP 数组的翻译文件，也可选支持 gettext。
 
@@ -421,6 +436,15 @@ $text = new Text('HELLO_USER', ['user' => 'Alice']);
 // 稍后注入翻译器
 $text->setTranslator($translator);
 
+echo $text; // 你好，Alice
+```
+
+当翻译器已在手边时，每个翻译器都提供 `newText()` 快捷方法，直接返回一个已绑定翻译器的 `Text`，省去 `setTranslator()` 调用。渲染依旧是延迟的——现在创建，稍后再转成字符串：
+
+```php
+$text = $translator->newText('HELLO_USER', ['user' => 'Alice']);
+
+// ... 过了一段时间，例如渲染模板或 API 响应时
 echo $text; // 你好，Alice
 ```
 
@@ -546,6 +570,9 @@ $createdAt = new LocalizedDate($row['created_at'], $timezone, $translator);
 interface TranslatorInterface
 {
     public function translate(string $key, array $params = [], ?string $domain = null): string;
+
+    // 快捷方法：返回一个已绑定当前翻译器的 Text
+    public function newText(string $key, array $params = [], ?string $domain = null): Text;
 }
 ```
 
@@ -572,6 +599,9 @@ $text->getKey(): string;
 $text->getParams(): array;
 $text->getDomain(): ?string;
 (string) $text; // 触发翻译
+
+// 翻译器已在手边时的快捷方法
+$translator->newText(string $key, array $params = [], ?string $domain = null): Text;
 
 // JSON 序列化
 $text->jsonSerialize(): array;

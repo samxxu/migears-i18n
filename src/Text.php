@@ -19,6 +19,10 @@ use Stringable;
  *   $text = new Text('HELLO_USER', ['user' => 'Alice']);
  *   $text->setTranslator($translator);
  *   echo $text; // "Hello, Alice"
+ *
+ * When the translator is already at hand, every translator can build the same
+ * object in one call: `$text = $translator->newText('HELLO_USER', ['user' => 'Alice']);`
+ * Rendering is still deferred until `$text` is stringified.
  */
 final class Text implements Stringable, JsonSerializable
 {

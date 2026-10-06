@@ -17,4 +17,16 @@ interface TranslatorInterface
      * @throws \InvalidArgumentException if a parameter value cannot be rendered as text
      */
     public function translate(string $key, array $params = [], ?string $domain = null): string;
+
+    /**
+     * Create a Text bound to this translator, sparing a separate setTranslator() call.
+     *
+     * @param string               $key    translation key
+     * @param array<string, mixed> $params interpolation parameters; values must be
+     *                                     scalar, Stringable or null
+     * @param string|null          $domain optional text domain
+     *
+     * @throws \InvalidArgumentException if a parameter value cannot be rendered as text
+     */
+    public function newText(string $key, array $params = [], ?string $domain = null): Text;
 }

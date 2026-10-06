@@ -22,6 +22,8 @@ use Stringable;
  */
 class ArrayTranslator implements TranslatorInterface
 {
+    use CreatesText;
+
     /** @var array<string, array<string, string>> domain => [key => translation] */
     private array $translations;
 

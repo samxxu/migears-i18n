@@ -7,6 +7,7 @@ namespace MiGears\I18n\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use MiGears\I18n\ArrayTranslator;
+use MiGears\I18n\Text;
 use InvalidArgumentException;
 
 #[CoversClass(ArrayTranslator::class)]
@@ -223,5 +224,46 @@ final class ArrayTranslatorTest extends TestCase
         $translator = new ArrayTranslator([]);
 
         self::assertSame('HELLO', $translator->translate('HELLO'));
+    }
+
+    public function testNewTextReturnsTextBoundToTranslator(): void
+    {
+        $translator = new ArrayTranslator(['HELLO_USER' => 'Hello, %user%']);
+
+        $text = $translator->newText('HELLO_USER', ['user' => 'Alice']);
+
+        self::assertInstanceOf(Text::class, $text);
+        self::assertSame('Hello, Alice', (string) $text);
+    }
+
+    public function testNewTextPassesDomain(): void
+    {
+        $translator = new ArrayTranslator([
+            'messages' => ['HELLO' => 'Hello'],
+            'errors' => ['NOT_FOUND' => 'Page not found'],
+        ]);
+
+        self::assertSame('Page not found', (string) $translator->newText('NOT_FOUND', [], 'errors'));
+    }
+
+    public function testNewTextExposesKeyParamsAndDomain(): void
+    {
+        $translator = new ArrayTranslator(['HELLO_USER' => 'Hello, %user%']);
+
+        $text = $translator->newText('HELLO_USER', ['user' => 'Alice'], 'messages');
+
+        self::assertSame('HELLO_USER', $text->getKey());
+        self::assertSame(['user' => 'Alice'], $text->getParams());
+        self::assertSame('messages', $text->getDomain());
+    }
+
+    public function testNewTextValidatesParams(): void
+    {
+        $translator = new ArrayTranslator(['MSG' => 'Hello %name%']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Interpolation parameter "name" must be a scalar, Stringable or null, array given');
+
+        $translator->newText('MSG', ['name' => ['a']]);
     }
 }
